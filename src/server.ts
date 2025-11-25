@@ -3,6 +3,7 @@ import config from './config';
 // import { json } from 'stream/consumers';
 import { RouterHandler, routes } from './helpers/RouterHandler';
 import './routes'; // import routes to register them
+import findDynamicRoute from './helpers/dynamicRoutHandler';
 
 // addRoute("GET", "/", (req, res) => {
 //     // res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -29,7 +30,13 @@ const server: Server = http.createServer((req: IncomingMessage, res: ServerRespo
 
     if (handler) {
         handler(req, res);
-    } else {
+    } else if (findDynamicRoute(method, path)) {
+        const match = findDynamicRoute(method, path);
+        (req as any).params = match?.params;
+        match?.handler(req, res);
+    }
+
+    else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
             success: false,
